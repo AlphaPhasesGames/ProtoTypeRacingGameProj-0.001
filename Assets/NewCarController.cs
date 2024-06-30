@@ -13,6 +13,15 @@ public class NewCarController : MonoBehaviour
     private float turnInput;
     private bool isCarGrounded;
 
+    public float turnAcceleration;
+    public float acceleration;// = 0.01f;
+    public float maxSpeed;// = 200;
+    public float minSpeed;
+    public float maxTurn;
+    public float minTurn;
+    public Vector3 velocity;
+   
+
    // private float normalDrag;
     //public float modifiedDrag;
 
@@ -35,12 +44,57 @@ public class NewCarController : MonoBehaviour
         moveInput = Input.GetAxisRaw("Vertical");
         turnInput = Input.GetAxisRaw("Horizontal");
 
+
+        if (Input.GetKey(KeyCode.W))
+        {
+            fwdSpeed += acceleration;
+            turnSpeed += turnAcceleration;
+        }
+        if (Input.GetKey(KeyCode.S))
+        {
+            fwdSpeed -= acceleration;
+            turnSpeed += turnAcceleration;
+        }
+
+        //if(sphereRB.velocity.x <= 2f)
+       // {
+       //     fwdSpeed = 0;
+       // }
+
+        if (moveInput == 0)
+        {
+            fwdSpeed -= acceleration;
+            turnSpeed -= turnAcceleration;
+            turnSpeed = turnAcceleration;
+        }
+        
+        velocity = sphereRB.velocity;
+
+        if ( fwdSpeed > maxSpeed)
+        {
+            fwdSpeed = maxSpeed;
+        }
+
+        if (fwdSpeed < minSpeed)
+        {
+            fwdSpeed = minSpeed;
+        }
+
+        if(turnSpeed > maxTurn)
+        {
+            turnSpeed = maxTurn;
+        }
+
+        if (turnSpeed < minTurn)
+        {
+            turnSpeed = minTurn;
+        }
         // Calculate Turning Rotation
         float newRot = turnInput * turnSpeed * Time.deltaTime * moveInput;
 
-        if (isCarGrounded)
-            transform.Rotate(0, newRot, 0, Space.World);
+        //if (isCarGrounded)
 
+        
         // Set Cars Position to Our Sphere
         transform.position = sphereRB.transform.position;
 
@@ -49,13 +103,15 @@ public class NewCarController : MonoBehaviour
         isCarGrounded = Physics.Raycast(transform.position, -transform.up, out hit, 1f, groundLayer);
 
         // Rotate Car to align with ground
-       /* Quaternion toRotateTo*/ transform.rotation = Quaternion.FromToRotation(transform.up, hit.normal) * transform.rotation;
-       // transform.rotation = Quaternion.Slerp(transform.rotation, toRotateTo, alignToGroundTime * Time.deltaTime);
+        /* Quaternion toRotateTo*/
+        transform.rotation = Quaternion.FromToRotation(transform.up, hit.normal) * transform.rotation;
+        // transform.rotation = Quaternion.Slerp(transform.rotation, toRotateTo, alignToGroundTime * Time.deltaTime);
         //transform.rotation = Quaternion.FromToRotation(transform.rotation, toRotateTo, alignToGroundTime * Time.deltaTime);
         // Calculate Movement Direction
         moveInput *= moveInput > 0 ? fwdSpeed : revSpeed;
         if (isCarGrounded)
         {
+            transform.Rotate(0, newRot, 0, Space.World);
             sphereRB.drag = groundDrag;
         }
         else
@@ -63,7 +119,6 @@ public class NewCarController : MonoBehaviour
             sphereRB.drag = airDrag;
         }
                 
-
 
         // Calculate Drag
         //sphereRB.drag = isCarGrounded ? normalDrag : modifiedDrag;
